@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LocalKart – Your Local Market, Delivered</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Hind:wght@400;500;600&display=swap">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--pea:#0B5D57;--pea2:#0E7A72;--tur:#FFB703;--chili:#E63B2E;--ink:#10231F;--mute:#5B6B67;--bg:#F3F7F5;--card:#fff;--line:#E1EAE6;--r:18px;--sh:0 6px 20px rgba(11,93,87,.10);
+--fd:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;--fb:"Hind","Segoe UI",system-ui,sans-serif;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#E8F2EF;--mute:#9DB2AC;--bg:#0C1A18;--card:#132623;--line:#21403B;--sh:0 6px 20px rgba(0,0,0,.4)}}
+:root[data-theme="dark"]{--ink:#E8F2EF;--mute:#9DB2AC;--bg:#0C1A18;--card:#132623;--line:#21403B;--sh:0 6px 20px rgba(0,0,0,.4)}
+*{box-sizing:border-box;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--fb);padding-bottom:84px;overflow-x:hidden}
+h1,h2,h3{font-family:var(--fd);line-height:1.15;letter-spacing:-.01em}
+button{font:inherit;cursor:pointer;border:0;color:inherit;background:none}
+:focus-visible{outline:3px solid var(--tur);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:14px;font-weight:600;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.b1{background:var(--tur);color:#241a00}.b2{background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(255,255,255,.4)}
+.b3{background:var(--pea);color:#fff;min-height:40px;padding:0 16px;border-radius:12px}
+/* header */
+header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line)}
+.hrow{display:flex;align-items:center;gap:12px;height:62px}
+.logo{display:flex;align-items:center;gap:8px;font:800 22px var(--fd);color:var(--pea);text-decoration:none}
+.logo b{color:var(--chili);font-weight:800}
+.loc{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:var(--bg);font-weight:600;font-size:14px;margin-left:auto}
+.dnav{display:none;gap:4px}
+.dnav button{padding:8px 14px;border-radius:10px;font-weight:600;color:var(--mute)}
+.dnav button:hover{background:var(--bg);color:var(--pea)}
+.sbar{padding:0 0 12px}
+.search{display:flex;align-items:center;gap:10px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:0 14px;height:48px}
+.search input{flex:1;border:0;background:none;font:inherit;color:inherit;min-width:0;outline:0}
+.search:focus-within{border-color:var(--pea)}
+.cartbtn{position:relative;display:none;align-items:center;gap:8px}
+.cnt{background:var(--chili);color:#fff;border-radius:99px;font-size:12px;min-width:20px;height:20px;display:grid;place-items:center;padding:0 5px;font-weight:600}
+/* hero */
+.hero{margin:16px 0;border-radius:26px;background:linear-gradient(135deg,var(--pea) 0%,#083F3B 100%);color:#fff;padding:28px 22px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,183,3,.45),transparent 65%)}
+.pill{display:inline-flex;gap:6px;align-items:center;background:rgba(255,255,255,.14);padding:6px 12px;border-radius:99px;font-size:13px;font-weight:500;margin-bottom:14px}
+.hero h1{font-size:clamp(32px,8vw,56px);font-weight:800;max-width:560px}
+.hero p{margin:12px 0 22px;color:#CFE8E3;max-width:480px}
+.hbtn{display:flex;flex-wrap:wrap;gap:10px;position:relative;z-index:1}
+.trust{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:22px;font-size:13px;color:#CFE8E3;position:relative;z-index:1}
+section{margin:30px 0}
+.sh{display:flex;justify-content:space-between;align-items:end;margin-bottom:14px}
+.sh h2{font-size:22px}.sh a{color:var(--pea);font-weight:600;font-size:14px;text-decoration:none}
+/* categories */
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cat{background:var(--card);border-radius:var(--r);padding:14px 6px 12px;text-align:center;font-size:13px;font-weight:600;line-height:1.25;box-shadow:var(--sh);transition:transform .15s}
+.cat:active{transform:scale(.96)}
+.cat i{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 8px;border-radius:16px;font-style:normal;font-size:28px}
+/* chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none}
+.chip{flex:none;padding:8px 14px;border-radius:99px;border:1.5px solid var(--line);background:var(--card);font-weight:600;font-size:14px}
+.chip[aria-pressed=true]{background:var(--pea);color:#fff;border-color:var(--pea)}
+/* shops */
+.shops{display:grid;gap:14px;grid-template-columns:1fr}
+.shop{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.cover{height:112px;position:relative;display:flex;align-items:flex-end;padding:10px}
+.cover .off{background:var(--chili);color:#fff;font:700 13px var(--fd);padding:4px 10px;border-radius:8px}
+.cover .st{position:absolute;top:10px;right:10px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;background:#fff;color:#0A7A3E}
+.cover .st.c{color:var(--chili)}
+.fav{position:absolute;top:8px;left:8px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.92);color:#444;font-size:18px}
+.fav[aria-pressed=true]{color:var(--chili)}
+.sb{padding:0 14px 14px;position:relative}
+.slogo{width:46px;height:46px;border-radius:14px;border:3px solid var(--card);margin-top:-23px;display:grid;place-items:center;font:800 18px var(--fd);color:#fff}
+.sb h3{font-size:18px;margin-top:6px;display:flex;align-items:center;gap:6px}
+.ver{width:18px;height:18px;border-radius:50%;background:#1D9BF0;color:#fff;font-size:11px;display:inline-grid;place-items:center}
+.sub{color:var(--mute);font-size:14px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0 14px;font-weight:600;font-size:14px}
+.sk{background:linear-gradient(90deg,var(--line),var(--card),var(--line));background-size:200% 100%;animation:sk 1.2s infinite;border-radius:var(--r);height:250px}
+@keyframes sk{to{background-position:-200% 0}}
+.empty{padding:30px;text-align:center;color:var(--mute);background:var(--card);border-radius:var(--r)}
+/* deals */
+.deals{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:6px}
+.deal{flex:none;width:78%;max-width:320px;scroll-snap-align:start;border-radius:var(--r);padding:18px;color:#fff;min-height:132px;display:flex;flex-direction:column;justify-content:space-between}
+.deal h3{font-size:24px}.deal span{font-size:13px;opacity:.9}
+/* compare */
+.cmp{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:16px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-top:1px solid var(--line);font-weight:600}
+.row small{display:block;color:var(--mute);font-weight:400}
+.best{background:#E5F6EC;color:#0A7A3E;font-size:12px;padding:2px 8px;border-radius:99px;margin-left:6px}
+.sell{display:grid;gap:14px;background:var(--ink);color:var(--bg);border-radius:26px;padding:26px 22px}
+:root[data-theme="dark"] .sell{background:var(--card)}
+.sell p{color:var(--mute)}
+footer{color:var(--mute);font-size:13px;text-align:center;padding:10px 0 24px}
+/* bottom nav */
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+.bnav button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--mute);min-height:48px;justify-content:center}
+.bnav button span{font-size:22px;line-height:1}
+.bnav button.on{color:var(--pea)}
+.fcart{position:fixed;right:14px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:31;background:var(--chili);color:#fff;border-radius:99px;height:54px;padding:0 18px;display:flex;align-items:center;gap:8px;font-weight:600;box-shadow:0 8px 22px rgba(230,59,46,.4)}
+.fcart.bump{animation:bump .35s}
+@keyframes bump{50%{transform:scale(1.12)}}
+.toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;opacity:0;transition:.25s;z-index:40;pointer-events:none;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(min-width:640px){.shops{grid-template-columns:repeat(2,1fr)}.cats{grid-template-columns:repeat(4,1fr)}.deal{width:300px}}
+@media(min-width:960px){
+.shops{grid-template-columns:repeat(3,1fr)}.cats{grid-template-columns:repeat(6,1fr)}
+.dnav{display:flex}.cartbtn{display:flex}.bnav,.fcart{display:none}body{padding-bottom:0}
+.hrow .loc{margin-left:0}.sbar{padding:0;flex:1}.hrow{height:72px}.hrow .search{max-width:420px}
+.hero{padding:56px 48px}.sell{grid-template-columns:1.2fr 1fr;align-items:center;padding:40px}
+.toast{bottom:30px}}
+#sv{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto;padding-bottom:110px}
+#sv[hidden]{display:none}
+.scov{height:170px;position:relative;padding-top:env(safe-area-inset-top,0px)}
+.rb{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.95);color:#222;font-size:18px}
+.sinfo{background:var(--card);border-radius:22px;margin:-34px 0 0;position:relative;padding:16px;box-shadow:var(--sh)}
+.sinfo .slogo{margin-top:-40px;width:58px;height:58px;font-size:22px}
+.acts{display:flex;gap:8px;margin-top:12px}.acts .btn{flex:1;min-height:42px;padding:0 8px;background:var(--bg);font-size:14px}
+.prods{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.prod{background:var(--card);border-radius:var(--r);padding:12px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:2px;position:relative}
+.pimg{height:84px;border-radius:12px;display:grid;place-items:center;font-size:44px;background:var(--bg);margin-bottom:6px}
+.pdisc{position:absolute;top:8px;left:8px;background:var(--chili);color:#fff;font:700 11px var(--fd);padding:2px 7px;border-radius:6px}
+.prod h4{font:600 15px/1.25 var(--fb)}.prod .sz{color:var(--mute);font-size:13px}
+.pr{display:flex;gap:6px;align-items:baseline;margin:4px 0 8px}.pr b{font:700 18px var(--fd)}.pr s{color:var(--mute);font-size:13px}
+.stk{font-size:12px;font-weight:600;color:#0A7A3E}.stk.l{color:#C77700}.stk.o{color:var(--chili)}
+.add{margin-top:auto;min-height:40px;border-radius:11px;border:1.5px solid var(--pea);color:var(--pea);font-weight:700;width:100%}
+.add:disabled{opacity:.4;border-color:var(--line);color:var(--mute)}
+.step{margin-top:auto;display:flex;align-items:center;justify-content:space-between;background:var(--pea);color:#fff;border-radius:11px;min-height:40px}
+.step button{width:42px;height:40px;font-size:20px;color:#fff}
+.cbar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:55;background:var(--pea);color:#fff;border-radius:16px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:600;box-shadow:0 10px 24px rgba(11,93,87,.4);max-width:560px;margin:0 auto}
+.modal{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:20px}
+.modal[hidden]{display:none}
+.mbox{background:var(--card);border-radius:22px;padding:24px;max-width:380px;width:100%}
+.mbox .acts .btn{background:var(--bg)}.mbox .acts .b3{background:var(--pea)}
+@media(min-width:760px){.prods{grid-template-columns:repeat(4,1fr)}}
+main.searching>*:not(#res){display:none}
+.rr{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:var(--r);padding:12px;box-shadow:var(--sh)}
+.rr .pimg{width:64px;height:64px;font-size:34px;flex:none;margin:0}.rr .mid{flex:1;min-width:0}.rr h4{font:600 15px/1.25 var(--fb)}.rr .sz{color:var(--mute);font-size:13px}.rr .ctl{width:84px;flex:none}.rr .pr{margin:4px 0 0;flex-wrap:wrap}
+#cv{position:fixed;inset:0;z-index:60;background:var(--bg);overflow-y:auto;padding:calc(12px + env(safe-area-inset-top,0px)) 0 120px}
+#cv[hidden]{display:none}.crow{display:flex;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}.crow .step{width:104px;flex:none;margin:0}
+.tot{font:700 20px var(--fd)}.free{color:#0A7A3E}
+.toast{z-index:90!important}
+#ko,#tv{position:fixed;inset:0;z-index:65;background:var(--bg);overflow-y:auto;padding:calc(12px + env(safe-area-inset-top,0px)) 0 40px}
+#tv{z-index:66}#ko[hidden],#tv[hidden]{display:none}
+.opt{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}.opt small{display:block;color:var(--mute)}.opt input{accent-color:var(--pea);width:20px;height:20px;flex:none}.opt.off{opacity:.5}
+.tl{list-style:none;padding:0;margin:8px 0 0}.tl li{display:flex;gap:12px;padding-bottom:18px;position:relative;color:var(--mute);font-weight:600}
+.tl li:not(:last-child):before{content:"";position:absolute;left:12px;top:26px;bottom:0;width:2px;background:var(--line)}
+.dt{width:26px;height:26px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:13px;flex:none;z-index:1}
+.tl li.d{color:var(--ink)}.tl li.d .dt{background:var(--pea);color:#fff}.tl li.d:before{background:var(--pea)}
+.tl li.c{color:var(--ink)}.tl li.c .dt{background:var(--tur);color:#241a00;animation:pl 1.2s infinite}
+@keyframes pl{50%{box-shadow:0 0 0 7px rgba(255,183,3,.3)}}
+.demo{background:#FFF3CC;color:#6B4B00;border-radius:12px;padding:10px 12px;font-size:13px;margin-top:12px}
+#sp,#rp{position:fixed;inset:0;z-index:67;background:var(--bg);overflow-y:auto;padding:calc(12px + env(safe-area-inset-top,0px)) 0 40px}
+#sp[hidden],#rp[hidden]{display:none}
+.sg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:var(--card);border-radius:var(--r);padding:14px;box-shadow:var(--sh)}.stat b{display:block;font:700 22px var(--fd)}.stat span{color:var(--mute);font-size:13px}
+#ap{position:fixed;inset:0;z-index:67;background:var(--bg);overflow-y:auto;padding:calc(12px + env(safe-area-inset-top,0px)) 0 40px}#ap[hidden]{display:none}
+.bars{display:flex;gap:8px;align-items:end;height:120px;margin:12px 0 4px}.bars div{flex:1;height:100%;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:4px}.bars i{display:block;width:100%;background:var(--pea);border-radius:6px 6px 0 0;min-height:4px}.bars small{color:var(--mute)}
+@media(min-width:760px){#ap .sg{grid-template-columns:repeat(4,1fr)}}
+.ord{border:2px solid var(--tur);border-radius:var(--r);background:var(--card);padding:16px;margin-top:12px}.acts .b1{background:var(--tur)}
+@media(min-width:760px){#sp .sg{grid-template-columns:repeat(5,1fr)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+ <div class="wrap">
+  <div class="hrow">
+   <a class="logo" href="#" aria-label="LocalKart home">
+    <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2C11.7 2 5 8.6 5 16.8 5 27 20 38 20 38s15-11 15-21.2C35 8.6 28.300 2 20 2z" fill="#0B5D57"/><path d="M12 15h16l-2 9H14z" fill="#FFB703"/><path d="M11 12l2 3M29 12h-3" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="27" r="1.8" fill="#fff"/><circle cx="24" cy="27" r="1.8" fill="#fff"/></svg>
+    <span>Local<b>Kart</b></span></a>
+   <button class="loc" id="loc" aria-label="Change location">📍 Ranchi ▾</button>
+   <div class="sbar" style="display:none" id="dsearch"></div>
+   <nav class="dnav" aria-label="Main"><button>Offers</button><button>Orders</button><button>Account</button></nav>
+   <button class="btn b3 cartbtn" id="dcart">🛒 Cart <span class="cnt" data-cnt>0</span></button>
+  </div>
+  <div class="sbar" id="msearch">
+   <label class="search"><span aria-hidden="true">🔍</span><input id="q" type="search" placeholder="Search atta, milk, Maggi, soap…" aria-label="Search products"></label>
+  </div>
+ </div>
+</header>
+
+<main class="wrap">
+ <section id="res" hidden></section>
+ <div class="hero">
+  <span class="pill">📍 8 shops available near you in Ranchi</span>
+  <h1>Your Local Market, Delivered.</h1>
+  <p>Shop from trusted stores near you and get your everyday products delivered to your doorstep.</p>
+  <div class="hbtn"><button class="btn b1" id="near">Shop Near Me</button><a class="btn b2" href="#shops" style="text-decoration:none">Explore Shops</a></div>
+  <div class="trust"><span>✓ Real shop prices</span><span>✓ Verified local stores</span><span>✓ Cash on delivery</span></div>
+ </div>
+
+ <section>
+  <div class="sh"><h2>Shop by category</h2></div>
+  <div class="cats" id="cats"></div>
+ </section>
+
+ <section>
+  <div class="sh"><h2>Deals near you</h2></div>
+  <div class="deals">
+   <div class="deal" style="background:linear-gradient(135deg,#E63B2E,#B3261E)"><div><span>Gupta General Store</span><h3>10% OFF on atta &amp; dal</h3></div><span>Ends tonight</span></div>
+   <div class="deal" style="background:linear-gradient(135deg,#0E7A72,#0B5D57)"><div><span>Platform offer</span><h3>Free delivery on first order</h3></div><span>Code: LOCAL1</span></div>
+   <div class="deal" style="background:linear-gradient(135deg,#F59E0B,#C77700)"><div><span>Ranchi Dairy Point</span><h3>₹50 OFF above ₹499</h3></div><span>Today only</span></div>
+  </div>
+ </section>
+
+ <section id="shops">
+  <div class="sh"><h2>Shops near you</h2><a href="#">See all</a></div>
+  <div class="chips" id="chips" role="group" aria-label="Filter shops"></div>
+  <div class="shops" id="shopgrid"></div>
+ </section>
+
+ <section>
+  <div class="sh"><h2>Compare local prices</h2></div>
+  <div class="cmp">
+   <strong>Aashirvaad Atta 5 kg</strong>
+   <div class="row"><div>Gupta General Store<small>1.8 km · 20–30 min</small></div><div>₹279 <span class="best">Lowest</span></div></div>
+   <div class="row"><div>Sharma Mart<small>2.4 km · 25–35 min</small></div><div>₹285</div></div>
+   <div class="row"><div>Kumar Grocery<small>3.0 km · 30–40 min</small></div><div>₹290</div></div>
+  </div>
+ </section>
+
+ <section class="sell">
+  <div><h2 style="font-size:26px">Own a shop? Bring it online today.</h2><p style="margin:8px 0 0">Keep your products, your prices and your stock. We bring the customers and the riders.</p></div>
+  <div><button class="btn b1" id="sellbtn">Open your online shop</button></div>
+ </section>
+ <footer>LocalKart · Made for Ranchi, Jharkhand 🇮🇳</footer>
+</main>
+
+<button class="fcart" id="fcart" aria-label="Open cart">🛒 <span class="cnt" data-cnt>0</span> Cart</button>
+<nav class="bnav" aria-label="Primary">
+ <button class="on"><span>🏠</span>Home</button><button><span>🧺</span>Categories</button><button onclick="document.getElementById('q').focus()"><span>🔍</span>Search</button><button><span>🧾</span>Orders</button><button><span>👤</span>Account</button>
+</nav>
+<div id="sv" hidden></div><div id="cv" hidden></div><div id="ko" hidden></div><div id="tv" hidden></div><div id="sp" hidden></div><div id="rp" hidden></div><div id="ap" hidden></div>
+<div class="modal" id="modal" hidden><div class="mbox"><h3 style="font-size:20px">Start a new cart?</h3><p class="sub" id="mtxt" style="margin:8px 0 16px"></p><div class="acts"><button class="btn" id="keep">Keep Cart</button><button class="btn b3" id="newc">Start New Cart</button></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const CATS=[["Groceries","🛒","#E3F4EA"],["Fruits & Veg","🥭","#FFF1D6"],["Dairy","🥛","#E4F0FB"],["Bakery","🥐","#FBE9DC"],["Snacks","🍿","#FDE6E3"],["Beverages","🧃","#E8F7F1"],["Personal Care","🧴","#EFE7FA"],["Household","🧽","#E3F1F5"],["Meat & Chicken","🍗","#FCE3E0"],["Stationery","✏️","#FFF3CC"],["Electronics","🔌","#E6EAF8"],["Local Products","🏺","#F6E8D8"]];
+const SHOPS=[
+["Gupta General Store","Main Road","Groceries",4.7,1.8,"20–30",1,"10% OFF","#0B5D57,#0E7A72"],
+["Kumar Fresh Fruits","Harmu","Fruits & Veg",4.6,1.2,"15–25",1,"Free delivery","#C77700,#F59E0B"],
+["Sharma Mart","Lalpur","Groceries",4.5,2.4,"25–35",1,"₹30 OFF","#2A5CAA,#4C84D6"],
+["Ranchi Dairy Point","Kanke Road","Dairy",4.8,3.1,"25–35",1,"₹50 OFF","#3B82A0,#5DB1CF"],
+["Bakers Nook","Morabadi","Bakery",4.4,2.9,"30–40",0,"Buy 1 Get 1","#B3261E,#E63B2E"],
+["Singh Stationers","Albert Ekka Chowk","Stationery",4.5,2.2,"25–35",1,"15% OFF","#6B3FA0,#8F63C7"],
+["Mahto Chicken Centre","Argora","Meat & Chicken",4.2,3.6,"30–40",1,"5% OFF","#8A2A2A,#C24B4B"],
+["Jharkhand Haat","Doranda","Local Products",4.3,2.7,"30–45",1,"Free gift","#7A5230,#B07C4B"]];
+let cart=0,filter="All";
+const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2200)};
+$("#cats").innerHTML=CATS.map(c=>`<button class="cat" data-c="${c[0]}"><i style="background:${c[2]}">${c[1]}</i>${c[0]}</button>`).join("");
+$("#chips").innerHTML=["All","Groceries","Fruits & Veg","Dairy","Bakery","Stationery","Local Products"].map(c=>`<button class="chip" aria-pressed="${c==='All'}">${c}</button>`).join("");
+function render(){
+ const list=SHOPS.filter(s=>(filter==="All"||s[2]===filter)&&s[4]<=RAD).sort((a,b)=>a[4]-b[4]);
+ $("#shopgrid").innerHTML=list.length?list.map((s,i)=>`<article class="shop"><div class="cover" style="background:linear-gradient(135deg,${s[8]})"><button class="fav" aria-pressed="${FAV.has(s[0])}" aria-label="Favorite ${s[0]}">♥</button><span class="st ${s[6]?'':'c'}">${s[6]?'Open':'Closed'}</span><span class="off">${s[7]}</span></div>
+ <div class="sb"><div class="slogo" style="background:linear-gradient(135deg,${s[8]})">${s[0][0]}</div><h3>${s[0]} <span class="ver" title="Verified">✓</span></h3><div class="sub">${s[1]} · ${s[2]}</div>
+ <div class="meta"><span>⭐ ${s[3]}</span><span>📍 ${s[4]} km</span><span>🛵 ${s[5]} min</span></div>
+ <button class="btn b3" style="width:100%" data-shop="${s[0]}">View Shop</button></div></article>`).join(""):`<div class="empty">No ${filter} shops near you yet. More local stores are joining every week.</div>`;
+}
+$("#shopgrid").innerHTML=Array(3).fill('<div class="sk"></div>').join("");
+setTimeout(render,700);
+$("#chips").onclick=e=>{const c=e.target.closest(".chip");if(!c)return;filter=c.textContent;document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===c));render()};
+$("#cats").onclick=e=>{const c=e.target.closest(".cat");if(!c)return;const f=c.dataset.c;filter=SHOPS.some(s=>s[2]===f)?f:f;document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x.textContent===f));render();$("#shops").scrollIntoView({behavior:"smooth"})};
+$("#shopgrid").onclick=e=>{
+ const f=e.target.closest(".fav");if(f){const on=f.getAttribute("aria-pressed")!=="true";f.setAttribute("aria-pressed",on);favSet(f.getAttribute("aria-label").slice(9),on);toast(on?"Added to favorite shops":"Removed from favorites");return}
+ const b=e.target.closest("[data-shop]");if(b)openShop(b.dataset.shop)};
+const P=[["atta","Aashirvaad Atta","5 kg",310,279,"🌾","Staples",40],["dal","Toor Dal","1 kg",170,155,"🫘","Staples",3],["oil","Fortune Sunflower Oil","1 L",165,149,"🛢️","Staples",25],["salt","Tata Salt","1 kg",28,25,"🧂","Staples",0],
+["milk","Amul Taaza Milk","500 ml",30,29,"🥛","Dairy",60],["paneer","Fresh Paneer","200 g",90,80,"🧀","Dairy",12],["curd","Mother Dairy Dahi","400 g",45,40,"🥣","Dairy",20],
+["maggi","Maggi Noodles","4 pack",56,52,"🍜","Snacks",50],["chips","Lay's Classic","52 g",20,18,"🥔","Snacks",4],["pg","Parle-G","800 g",85,75,"🍪","Snacks",30],
+["soap","Dettol Soap","3 x 75 g",150,127,"🧼","Care",15],["paste","Colgate Strong Teeth","200 g",120,102,"🪥","Care",18],
+["mango","Langda Mango","1 kg",120,99,"🥭","Fruits",20],["banana","Banana","1 dozen",60,48,"🍌","Fruits",30],["tomato","Tomato","1 kg",40,32,"🍅","Vegetables",25],["potato","Potato","1 kg",30,26,"🥔","Vegetables",50],
+["bread","Fresh Milk Bread","400 g",45,40,"🍞","Bakery",10],["cake","Chocolate Pastry","1 pc",60,50,"🧁","Bakery",6],
+["pen","Cello Gripper Pens","10 pack",100,85,"🖊️","Stationery",20],["note","Classmate Notebook","172 pg",70,60,"📒","Stationery",25]];
+const SELL={"Groceries":["Staples","Dairy","Snacks","Care"],"Fruits & Veg":["Fruits","Vegetables"],"Dairy":["Dairy","Snacks"],"Bakery":["Bakery","Snacks"],"Stationery":["Stationery","Snacks"]};
+let cs=null,ci={},cur=null,tab=null,pend=null;
+const rs=n=>"₹"+n.toLocaleString("en-IN");
+function baseItems(s){if(s.nw)return[];const i=SHOPS.indexOf(s),t=SELL[s[2]]||["Snacks","Care"];return P.filter(p=>t.includes(p[6])).map(p=>({id:p[0],n:p[1],sz:p[2],mrp:p[3],pr:i===0?p[4]:Math.round(p[4]*(1+(i%3+1)*.015)),e:p[5],t:p[6],st:p[7]}))}
+function totals(){let n=0,v=0;for(const k in ci){n+=ci[k].q;v+=ci[k].q*ci[k].pr}return[n,v]}
+function sync(){const[n]=totals();cart=n;document.querySelectorAll("[data-cnt]").forEach(x=>x.textContent=n);renderRes();if(!$("#cv").hidden)renderCart()}
+function openShop(name){cur=SHOPS.find(s=>s[0]===name);tab=null;drawShop();$("#sv").hidden=false;$("#sv").scrollTop=0;document.body.style.overflow="hidden"}
+function drawShop(){const s=cur,all=items(s),tabs=[...new Set(all.map(p=>p.t))];tab=tab||tabs[0];
+$("#sv").innerHTML=`<div class="scov" style="background:linear-gradient(135deg,${s[8]})"><button class="rb" style="left:12px" id="back" aria-label="Back">←</button><button class="rb" style="right:12px" id="sfav" aria-label="Favorite">♥</button></div>
+<div class="wrap"><div class="sinfo"><div class="slogo" style="background:linear-gradient(135deg,${s[8]})">${s[0][0]}</div><h2 style="font-size:22px;margin-top:6px">${s[0]} <span class="ver">✓</span></h2><div class="sub">${s[1]}, Ranchi · ${s[2]}</div>
+<div class="meta"><span>⭐ ${s[3]}</span><span>📍 ${s[4]} km</span><span>🛵 ${s[5]} min</span><span>${s[6]?"Open until 9 PM":"Closed now"}</span></div>
+<div class="acts"><button class="btn" id="call">📞 Call</button><button class="btn" id="shr">↗ Share</button><button class="btn" id="sf2">♡ Favorite</button></div></div>
+<div class="chips" style="margin:16px 0 8px">${tabs.map(t=>`<button class="chip" data-t="${t}" aria-pressed="${t===tab}">${t}</button>`).join("")}</div>
+<div class="prods">${all.filter(p=>p.t===tab).map(card).join("")}</div></div>${bar()}`}
+function card(p){const q=ci[p.id]?.q||0,d=Math.round((1-p.pr/p.mrp)*100),o=p.st===0;
+return `<div class="prod"><span class="pdisc">${d}% OFF</span><div class="pimg">${p.e}</div><h4>${p.n}</h4><span class="sz">${p.sz}</span><div class="pr"><b>${rs(p.pr)}</b><s>${rs(p.mrp)}</s></div>
+<span class="stk ${o?'o':p.st<5?'l':''}">${o?"Out of stock":p.st<5?"Only "+p.st+" left":"In stock"}</span>
+${q?`<div class="step" style="margin-top:8px"><button data-m="${p.id}" aria-label="Remove one">−</button><b>${q}</b><button data-a="${p.id}" aria-label="Add one">+</button></div>`:`<button class="add" style="margin-top:8px" data-a="${p.id}" ${o||!cur[6]?"disabled":""}>ADD</button>`}</div>`}
+function bar(){const[n,v]=totals();return n?`<div class="cbar"><span>${n} item${n>1?"s":""} · ${rs(v)}</span><button id="vc" style="color:#fff;font-weight:700">View cart →</button></div>`:""}
+function add(id){const p=items(cur).find(x=>x.id===id);if(cs&&cs!==cur[0]&&totals()[0]){pend=id;$("#mtxt").textContent="Your cart contains items from "+cs+". Start a new cart with "+cur[0]+"?";$("#modal").hidden=false;return}
+cs=cur[0];const q=(ci[id]?.q||0)+1;if(q>p.st){toast("Only "+p.st+" in stock");return}ci[id]={...p,q};sync();drawShop()}
+function rem(id){if(!ci[id])return;ci[id].q--;if(!ci[id].q)delete ci[id];if(!totals()[0])cs=null;sync();drawShop()}
+$("#sv").onclick=e=>{const t=e.target.closest("button");if(!t)return;
+if(t.id==="back"){$("#sv").hidden=true;document.body.style.overflow="";return}
+if(t.dataset.t){tab=t.dataset.t;drawShop();return}
+if(t.dataset.a)return add(t.dataset.a);if(t.dataset.m)return rem(t.dataset.m);
+if(t.id==="sfav"||t.id==="sf2"){const on=t.getAttribute("aria-pressed")!=="true";t.setAttribute("aria-pressed",on);favSet(cur[0],on);toast(on?"Added to favorite shops":"Removed from favorites")}
+if(t.id==="call"){cur.phone?location.href="tel:"+cur.phone:toast("This shop has not added a phone number yet")}
+if(t.id==="shr")navigator.share?navigator.share({title:cur[0]+" on LocalKart",url:location.href}).catch(()=>{}):toast("Link copied");
+if(t.id==="vc")openCart()};
+$("#keep").onclick=()=>{$("#modal").hidden=true;pend=null};
+$("#newc").onclick=()=>{ci={};cs=null;$("#modal").hidden=true;const id=pend;pend=null;sync();add(id)};
+$("#near").onclick=async()=>{try{const g=await getPos();myPos=g;let n=0;SHOPS.forEach(x=>{if(x.lat!=null){x[4]=Math.round(hav(g,{lat:x.lat,lng:x.lng})*10)/10;n++}});render();toast(n?"Distance updated for "+n+" shop(s) with a saved location":"Location found. Shops will show real distance once they save their location.")}catch(e){toast(e.message)}};
+$("#loc").onclick=()=>toast("Ranchi is our launch city. More cities soon.");
+$("#sellbtn").onclick=()=>openAcc("regshop");
+let srt="Nearest";
+const SORT={"Nearest":(a,b)=>a.s[4]-b.s[4],"Lowest price":(a,b)=>a.pr-b.pr,"Best offer":(a,b)=>b.d-a.d,"Fastest":(a,b)=>a.mins-b.mins};
+function renderRes(){const q=$("#q").value.trim().toLowerCase().replace(/[<>&"]/g,"");$("main").classList.toggle("searching",!!q);$("#res").hidden=!q;if(!q)return;
+const r=[];SHOPS.forEach((s,i)=>{if(!s[6])return;items(s).forEach(p=>{if((p.n+" "+p.t).toLowerCase().includes(q))r.push({...p,s,i,d:Math.round((1-p.pr/p.mrp)*100),mins:parseInt(s[5])})})});
+const low={},cnt={};r.forEach(x=>{low[x.id]=Math.min(low[x.id]??1e9,x.pr);cnt[x.id]=(cnt[x.id]||0)+1});r.sort(SORT[srt]);
+$("#res").innerHTML=`<div class="sh"><h2>${r.length} result${r.length==1?"":"s"} for “${q}”</h2></div><div class="chips">${Object.keys(SORT).map(k=>`<button class="chip" data-k="${k}" aria-pressed="${k===srt}">${k}</button>`).join("")}</div>
+<div style="display:grid;gap:10px">${r.map(p=>{const n=cs===p.s[0]?ci[p.id]?.q||0:0;return `<div class="rr"><div class="pimg">${p.e}</div><div class="mid"><h4>${p.n}</h4><span class="sz">${p.sz} · ${p.s[0]}</span><div class="sz">📍 ${p.s[4]} km · 🛵 ${p.s[5]} min</div><div class="pr"><b>${rs(p.pr)}</b><s>${rs(p.mrp)}</s><span class="best">${p.d}% OFF</span>${cnt[p.id]>1&&p.pr===low[p.id]?'<span class="best">Lowest</span>':''}</div></div>
+<div class="ctl">${n?`<div class="step"><button data-m="${p.id}" data-s="${p.i}" aria-label="Remove one">−</button><b>${n}</b><button data-a="${p.id}" data-s="${p.i}" aria-label="Add one">+</button></div>`:`<button class="add" data-a="${p.id}" data-s="${p.i}" ${p.st===0?"disabled":""}>${p.st===0?"Sold out":"ADD"}</button>`}</div></div>`}).join("")||`<div class="empty">No open shop near you has “${q}” yet. Try atta, milk, maggi, chips, soap or rice.</div>`}</div>`}
+$("#q").oninput=()=>{renderRes();scrollTo(0,0)};
+$("#res").onclick=e=>{const t=e.target.closest("button");if(!t||t.disabled)return;if(t.dataset.k){srt=t.dataset.k;return renderRes()}
+cur=SHOPS[+t.dataset.s];if(t.dataset.a)add(t.dataset.a);else if(t.dataset.m)rem(t.dataset.m)};
+function openCart(){$("#cv").hidden=false;renderCart()}
+function renderCart(){const L=Object.values(ci),[n,v]=totals();const mrp=L.reduce((a,x)=>a+x.mrp*x.q,0),B=bill(),fee=B.fee;
+$("#cv").innerHTML=`<div class="wrap"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><button class="rb" id="cx" style="position:static;background:var(--card);color:var(--ink)" aria-label="Close cart">←</button><h2 style="font-size:22px">Your cart</h2></div>`+(n?
+`<div class="cmp"><strong>${cs}</strong><div class="sub">Delivery in about ${SHOPS.find(s=>s[0]===cs)[5]} min</div>${L.map(x=>`<div class="crow"><div class="pimg" style="width:52px;height:52px;font-size:28px;margin:0;flex:none">${x.e}</div><div style="flex:1;min-width:0"><div style="font-weight:600">${x.n}</div><div class="sub">${x.sz} · ${rs(x.pr)}</div></div><div class="step"><button data-m="${x.id}" aria-label="Remove one">−</button><b>${x.q}</b><button data-a="${x.id}" aria-label="Add one">+</button></div></div>`).join("")}</div>
+<div class="cmp" style="margin-top:14px"><div class="row"><span>Item total (MRP)</span><span>${rs(mrp)}</span></div><div class="row free"><span>Shop discount</span><span>−${rs(mrp-v)}</span></div><div class="row"><span>Delivery fee</span><span class="${fee?'':'free'}">${fee?rs(fee):'FREE'}</span></div>${fee?`<div class="sub">Add ${rs(499-v)} more for free delivery</div>`:''}${B.d?`<div class="row free"><span>Coupon ${coupon}</span><span>−${rs(B.d)}</span></div>`:""}<div class="row tot"><span>Total</span><span>${rs(B.t)}</span></div></div>
+<div class="cmp" style="margin-top:14px"><div class="search"><input id="cc" placeholder="Coupon code (LOCAL1, SAVE10, FLAT50)" aria-label="Coupon code" value="${coupon||""}"><button class="btn b3" id="ap-c" style="min-height:34px;padding:0 12px">Apply</button></div>${coupon?`<div class="sub" style="margin-top:6px">${B.d>0||(COUPONS[coupon].fd&&orders.length===0)?"✓ "+COUPONS[coupon].t:"Not valid for this cart yet"}</div>`:""}</div><button class="btn b1" id="co" style="width:100%;margin-top:14px">Proceed to checkout · ${rs(B.t)}</button><button class="btn" id="clr" style="width:100%;margin-top:8px;color:var(--chili)">Clear cart</button>`
+:`<div class="empty">Your cart is empty.<br>Add something from a shop near you.</div>`)+`</div>`}
+$("#cv").onclick=e=>{const t=e.target.closest("button");if(!t)return;if(t.id==="cx")$("#cv").hidden=true;
+else if(t.dataset.a){cur=SHOPS.find(s=>s[0]===cs);add(t.dataset.a)}else if(t.dataset.m)rem(t.dataset.m);
+else if(t.id==="co")openCheckout();else if(t.id==="clr"){ci={};cs=null;sync()}};
+[$("#fcart"),$("#dcart")].forEach(b=>b.onclick=openCart);
+let addrs=[["Current location","Near Main Road, Ranchi"],["Home","Flat 4B, Kanke Road, Ranchi 834008"],["Work","Albert Ekka Chowk, Ranchi 834001"]],ai=0,orders=[],oid=1024,to=null,tmr=null;
+const bill=()=>{const[n,v]=totals(),c=coupon&&COUPONS[coupon];let fee=v>=499?0:30,d=0;if(c&&v>=(c.min||0)&&(!c.first||orders.length===0)){if(c.fd)fee=0;else d=c.d(v)}return{n,v,fee,d,t:Math.max(0,v+fee-d)}};
+const head=t=>`<div class="wrap"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><button class="rb" data-x style="position:static;background:var(--card);color:var(--ink)" aria-label="Back">←</button><h2 style="font-size:22px">${t}</h2></div>`;
+function openCheckout(){if(!totals()[0])return;$("#ko").hidden=false;renderCheckout()}
+function renderCheckout(){const b=bill();$("#ko").innerHTML=head("Checkout")+`<div class="cmp"><strong>Delivery address</strong>${addrs.map((a,i)=>`<label class="opt"><input type="radio" name="ad" value="${i}" ${i===ai?"checked":""}><span><b>${a[0]}</b><small>${a[1]}</small></span></label>`).join("")}
+<button class="btn" id="gpsa" style="width:100%;margin-top:10px;min-height:42px">📡 Use my current location (GPS)</button><div class="search" style="margin-top:10px"><input id="na" placeholder="Add new address" aria-label="New address"><button class="btn b3" id="adda" style="min-height:34px;padding:0 12px">Add</button></div></div>
+<div class="cmp" style="margin-top:14px"><strong>Payment</strong><label class="opt"><input type="radio" name="pm" checked><span><b>Cash on Delivery</b><small>Pay the rider when your order arrives</small></span></label><label class="opt off"><input type="radio" name="pm" disabled><span><b>UPI / Online payment</b><small>Coming soon</small></span></label></div>
+<div class="cmp" style="margin-top:14px"><strong>Order summary · ${cs}</strong>${Object.values(ci).map(x=>`<div class="row"><span>${x.n} × ${x.q}</span><span>${rs(x.pr*x.q)}</span></div>`).join("")}<div class="row"><span>Delivery fee</span><span class="${b.fee?'':'free'}">${b.fee?rs(b.fee):'FREE'}</span></div>${b.d?`<div class="row free"><span>Coupon ${coupon}</span><span>−${rs(b.d)}</span></div>`:""}<div class="row tot"><span>Total</span><span>${rs(b.t)}</span></div></div>
+<button class="btn b1" id="po" style="width:100%;margin-top:14px">PLACE ORDER · ${rs(b.t)}</button></div>`}
+$("#ko").onchange=e=>{if(e.target.name==="ad")ai=+e.target.value};
+$("#ko").onclick=e=>{const t=e.target.closest("button");if(!t)return;if(t.dataset.x!==undefined)$("#ko").hidden=true;
+else if(t.id==="adda"){const v=$("#na").value.trim();if(!v)return toast("Type your address first");addrs.push(["Saved address",v]);ai=addrs.length-1;renderCheckout();toast("Address added")}
+else if(t.id==="po"){if(LIVE&&!me){$("#ko").hidden=true;openAcc("auth");toast("Sign in to place your order");return}placeOrder()}};
+function placeOrder(){const b=bill(),o={id:++oid,shop:cs,items:Object.values(ci).map(x=>({n:x.n,q:x.q})),total:b.t,addr:addrs[ai],st:0};saveOrder(o,Object.values(ci),b.v,Object.values(ci).reduce((a,x)=>a+x.mrp*x.q,0),b.fee);orders.unshift(o);coupon=null;ci={};cs=null;sync();
+["#ko","#cv","#sv"].forEach(s=>$(s).hidden=true);document.body.style.overflow="";openTrack(o);toast("Order placed. Pay "+rs(o.total)+" on delivery")}
+const STEPS=["Order placed","Shop accepted","Preparing your order","Ready for pickup","Rider assigned","Rider picked up","Out for delivery","Delivered"],KM=[0,0,0,0,3.2,2.6,1.4,0],ETA=[35,32,28,22,18,15,12,0];
+function openTrack(o){to=o;trackLoc(o);$("#tv").hidden=false;renderTrack();clearInterval(tmr);tmr=setInterval(()=>{if(to.auto&&to.st>=0&&to.st<7){to.st++;renderTrack();upd()}else if(to.st>=7||to.st<0)clearInterval(tmr)},4000)}
+function renderTrack(){const o=to,s=o.st,title=s<0?"The shop could not accept this order":s===0?"Waiting for the shop to accept":s<4?"Your order is being prepared":s<5?"Finding a rider":s<7?"Your order is on the way":s<8&&s===7?"Delivered. Enjoy!":"";
+$("#tv").innerHTML=head("Order #"+o.id)+`<div class="hero" style="margin-top:0;padding:22px"><h2 style="font-size:24px;position:relative;z-index:1">${title}</h2><p style="margin:8px 0 0;position:relative;z-index:1">${s>=4&&s<7?`Rider is <span id="km">${liveKm(o)}</span> km away · Estimated arrival ${liveEta(o)} min`:s===7?"Thanks for shopping local.":(s<0?"Nothing was charged.":"Estimated arrival "+ETA[s]+" min")}</p></div>
+${s===7?reviewCard(o):""}${s>=5?(to.gps?liveMapCard(to):mapCard()):""}<div class="cmp" style="margin-top:14px"><ul class="tl">${STEPS.map((x,i)=>`<li class="${i<s||s===7?'d':i===s?'c':''}"><span class="dt">${i<s||s===7?'✓':i===s?'●':''}</span>${i>=5&&i<7?'🛵 ':''}${x}</li>`).join("")}</ul>
+${s>=4?`<div class="row"><span>Rider<small>Ramesh Yadav · ⭐ 4.8</small></span><span>📞</span></div>`:""}</div>
+<div class="cmp" style="margin-top:14px"><strong>${o.shop}</strong>${o.items.map(i=>`<div class="row"><span>${i.n}</span><span>× ${i.q}</span></div>`).join("")}<div class="row"><span>Cash on Delivery<small>${o.addr[0]}: ${o.addr[1]}</small></span><span class="tot">${rs(o.total)}</span></div></div>
+${o.dbId?`<div class="demo">Status updates live from the shop and the rider. The map uses real GPS when the rider shares location.</div>`:`<div class="demo"><b>Demo tracking mode.</b> Progress here is simulated. It is not real GPS or a real order.</div><div class="acts" style="margin-top:12px">${canPanel("shop")?'<button class="btn" data-go="shop">Shop panel</button>':""}${canPanel("rider")?'<button class="btn" data-go="rider">Rider panel</button>':""}<button class="btn" id="auto">Auto-play</button></div>`}<button class="btn b3" data-x style="width:100%;margin-top:14px">Back to shopping</button></div>`}
+$("#tv").onclick=e=>{if(e.target.closest("[data-x]"))$("#tv").hidden=true};
+const openOrders=()=>orders.length?openTrack(orders[0]):toast("No orders yet. Your orders will show up here.");
+$(".bnav").children[3].onclick=openOrders;$(".dnav").children[1].onclick=openOrders;
+let sellerShop="Gupta General Store",ron=false;
+const upd=()=>{if(!$("#ap").hidden)renderAdmin();if(!$("#sp").hidden)renderSeller();if(!$("#rp").hidden)renderRider();if(!$("#tv").hidden&&to)renderTrack()};
+const setSt=(o,s)=>{o.st=s;upd();sync2(o,s)};
+function go(r){if(r&&!canPanel(r)){toast("That panel is not available for your account");r=""};["#sp","#rp","#ap","#ac","#tv","#ko","#cv","#sv"].forEach(s=>$(s).hidden=true);if(r==="admin"){$("#ap").hidden=false;renderAdmin();if(LIVE)loadApps()}document.body.style.overflow="";if(r==="shop"){$("#sp").hidden=false;renderSeller()}if(r==="rider"){$("#rp").hidden=false;renderRider()}}
+const nav=a=>`<div class="chips"><button class="chip" data-go="home">Customer</button>${[["shop","Shop panel"],["rider","Rider panel"],["admin","Admin"]].filter(x=>canPanel(x[0])).map(x=>`<button class="chip" data-go="${x[0]}" aria-pressed="${a===x[0]}">${x[1]}</button>`).join("")}</div>`;
+const ACT={0:["Accept Order",1],1:["Start Preparing",2],2:["Mark Ready for Pickup",3]};
+function ordCard(o){const a=ACT[o.st];return `<div class="ord" style="${o.st!==0?'border-color:var(--line)':''}"><strong>${o.st===0?'NEW ORDER ':'ORDER '}#${o.id}</strong>${o.items.map(i=>`<div class="row"><span>${i.n}</span><span>× ${i.q}</span></div>`).join("")}<div class="row tot"><span>Total</span><span>${rs(o.total)}</span></div>
+<div class="acts" style="margin-top:12px">${a?`<button class="btn b1" data-o="${o.id}" data-n="${a[1]}">${a[0]}</button>${o.st===0?`<button class="btn" data-o="${o.id}" data-n="-1" style="color:var(--chili)">Reject</button>`:""}`:`<span class="sub">${o.st<0?"Rejected":o.st===3?"Waiting for a rider…":o.st<5?"Rider assigned":o.st<7?"Rider Picked Up ✓":"Delivered ✓"}</span>`}</div></div>`}
+function renderSeller(){const sh=SHOPS.find(s=>s[0]===sellerShop),mine=orders.filter(o=>o.shop===sellerShop),sale=mine.filter(o=>o.st===7).reduce((a,o)=>a+o.total,0),it=allItems(sh),h=new Date().getHours();
+$("#sp").innerHTML=`<div class="wrap">${nav("shop")}<h2 style="font-size:24px">${h<12?"Good Morning":h<17?"Good Afternoon":"Good Evening"}, ${sellerShop}</h2><select id="ss" aria-label="Choose shop" style="margin:8px 0 14px;padding:8px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit">${SHOPS.filter(s=>role==="admin"||!LIVE||myShops.includes(s[0])).map(s=>`<option ${s[0]===sellerShop?"selected":""}>${s[0]}</option>`).join("")}</select>
+<div class="sg"><div class="stat"><b>${rs(sale)}</b><span>Today's sales</span></div><div class="stat"><b>${mine.length}</b><span>Today's orders</span></div><div class="stat"><b>${mine.filter(o=>o.st===0).length}</b><span>Pending orders</span></div><div class="stat"><b>${it.length}</b><span>Products</span></div><div class="stat"><b>${it.filter(p=>p.st<5).length}</b><span>Low stock</span></div></div>
+${prodSection(sh)}<h3 style="margin:22px 0 4px">Orders</h3>${mine.map(ordCard).join("")||'<div class="empty" style="margin-top:10px">No orders yet. Place one as a customer and it will appear here.</div>'}</div>`}
+const activeCard=o=>{const[l,n]=o.st===4?(o.arr?["Picked Up",5]:["Arrived at Shop",0]):o.st===5?["Start Delivery",6]:["Delivered",7];
+return `<div class="ord"><strong>ORDER #${o.id}</strong><div class="row"><span>Pickup<small>${o.shop}</small></span><span>🏪</span></div><div class="row"><span>Deliver to<small>${o.addr[0]}: ${o.addr[1]}</small></span><span>📍</span></div><div class="acts" style="margin-top:12px"><a class="btn" style="text-decoration:none" target="_blank" rel="noopener" href="${navUrl(o)}">Navigate</a><button class="btn b1" data-ar="${o.id}" data-n="${n}">${l}</button></div><div class="sub" id="gpsb" style="margin-top:8px"></div></div>`};
+function renderRider(){const mine=orders.filter(o=>o.rider),dn=mine.filter(o=>o.st===7).length,act=mine.find(o=>o.st>=4&&o.st<7),op=orders.find(o=>o.st===3&&!o.rider);
+$("#rp").innerHTML=`<div class="wrap">${nav("rider")}<div style="display:flex;justify-content:space-between;align-items:center"><h2 style="font-size:24px">Delivery Partner</h2><button class="btn ${ron?'b3':''}" id="tg" style="${ron?'':'background:var(--card)'}">${ron?"● Online":"○ Offline"}</button></div>
+<div class="sg" style="margin-top:14px;grid-template-columns:repeat(3,1fr)"><div class="stat"><b>${dn}</b><span>Today's deliveries</span></div><div class="stat"><b>${rs(dn*45)}</b><span>Today's earnings</span></div><div class="stat"><b>${dn}</b><span>Completed orders</span></div></div>`+
+(!ron?`<div class="empty" style="margin-top:14px">You're offline. Go online to receive deliveries.</div>`:act?activeCard(act):op?`<div class="ord"><strong>NEW DELIVERY</strong><div class="row"><span>Pickup<small>${op.shop}</small></span><span>🏪</span></div><div class="row"><span>Delivery<small>${op.addr[0]}: ${op.addr[1]}</small></span><span>📍</span></div><div class="row"><span>Distance</span><span>3.2 km · ${rs(45)}</span></div><div class="acts" style="margin-top:12px"><button class="btn b1" data-ac="${op.id}">Accept</button></div></div>`:`<div class="empty" style="margin-top:14px">You're online. Waiting for the next delivery from a shop…</div>`)+`</div>`}
+$("#sp").onchange=e=>{if(e.target.id==="ss"){sellerShop=e.target.value;renderSeller()}};
+document.addEventListener("click",e=>{const t=e.target.closest("button");if(!t)return;const f=k=>orders.find(o=>o.id==t.dataset[k]);
+if(t.dataset.go!==undefined)go(t.dataset.go==="home"?"":t.dataset.go);
+else if(t.id==="auto"&&to){to.auto=true;toast("Auto-play started")}
+else if(t.dataset.o)setSt(f("o"),+t.dataset.n);
+else if(t.dataset.ac){acceptDelivery(f("ac"))}
+else if(t.dataset.ar){const o=f("ar");if(t.dataset.n==="0"){o.arr=true;upd()}else setSt(o,+t.dataset.n)}
+else if(t.dataset.nv)toast("Opens your maps app in the live version");
+else if(t.id==="tg"){ron=!ron;renderRider();if(LIVE&&me&&role==="rider")sb.from("riders").update({is_online:ron}).eq("id",me.id)}});
+const APPS=[{n:"Das Kirana Store",o:"Mohan Das",a:"Hinoo",c:"Groceries",s:"Pending"},{n:"Oraon Fresh Mart",o:"Sunita Oraon",a:"Bariatu",c:"Fruits & Veg",s:"Under Review"}];
+const AB={"Pending":[["Approve","Approved"],["Reject","Rejected"]],"Under Review":[["Approve","Approved"],["Reject","Rejected"]],"Approved":[["Suspend","Suspended"]],"Suspended":[["Reactivate","Approved"]],"Rejected":[["Approve","Approved"]]};
+function renderAdmin(){const c=s=>APPS.filter(a=>a.s===s).length,ok=orders.filter(o=>o.st>=0),gmv=ok.reduce((a,o)=>a+o.total,0),appr=8+c("Approved"),pend=c("Pending")+c("Under Review"),rej=1+c("Rejected"),sus=c("Suspended"),days=[14,19,16,24,21,27,orders.length],mx=Math.max(...days,1);
+const S=(b,l)=>`<div class="stat"><b>${b}</b><span>${l}</span></div>`;
+$("#ap").innerHTML=`<div class="wrap">${nav("admin")}<h2 style="font-size:24px">Platform overview · Ranchi</h2><div class="sg" style="margin-top:12px">${S(orders.length,"Orders today")}${S(rs(gmv),"GMV")}${S(rs(Math.round(gmv*.08)),"Platform revenue (8%, demo)")}${S(appr,"Active shops")}${S((ron?1:0)+" / 5","Riders online")}${S(20,"Customers")}${S(orders.filter(o=>o.st>=4&&o.st<7).length,"Live deliveries")}</div>
+<div class="cmp" style="margin-top:14px"><strong>Orders this week</strong><div class="bars">${days.map((d,i)=>`<div><i style="height:${d/mx*85}%"></i><small>${"MTWTFSS"[i]}</small></div>`).join("")}</div><div class="sub">Earlier days are sample data. Today is live.</div></div>
+<div class="cmp" style="margin-top:14px"><strong>Shop applications</strong><div class="sub">Ranchi: ${appr+pend+rej+sus} total · ${appr} approved · ${pend} pending · ${rej} rejected · ${sus} suspended</div>${APPS.map((a,i)=>`<div class="row" style="flex-wrap:wrap;gap:8px"><span>${a.n}<small>${a.o} · ${a.c} · ${a.a}</small></span><span class="best">${a.s}</span><span style="display:flex;gap:6px;width:100%">${AB[a.s].map(b=>`<button class="chip" data-ap="${i}" data-s="${b[1]}">${b[0]}</button>`).join("")}</span></div>`).join("")}</div>
+${admMore()}${riderReqHtml()}<div class="cmp" style="margin-top:14px"><strong>Orders</strong>${orders.map(o=>`<div class="row"><span>#${o.id} · ${o.shop}<small>${o.st<0?"Rejected":STEPS[o.st]}</small></span><span>${rs(o.total)}</span></div>`).join("")||'<div class="sub" style="margin-top:8px">No orders yet. They appear here as customers place them.</div>'}</div></div>`}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-ap]");if(t){const a=APPS[+t.dataset.ap];a.s=t.dataset.s;toast(a.n+": "+a.s);if(a.id)appDecide(a);renderAdmin()}});
+const mapCard=()=>`<div class="cmp" style="margin-top:14px"><svg viewBox="0 0 320 180" style="width:100%;border-radius:14px;background:var(--bg)" role="img" aria-label="Map with shop, rider and your location"><path d="M0 60H320M0 120H320M80 0V180M200 0V180" stroke="var(--line)" stroke-width="10" fill="none"/><path id="rt" d="M40 140Q120 40 200 110T280 40" stroke="#0E7A72" stroke-width="5" stroke-dasharray="2 8" stroke-linecap="round" fill="none"/><text x="40" y="150" font-size="24" text-anchor="middle">🏪</text><text x="280" y="38" font-size="24" text-anchor="middle">📍</text><g id="rd"><circle r="16" fill="#FFB703"/><text y="7" font-size="20" text-anchor="middle">🛵</text></g></svg><div class="sub" style="margin-top:8px">Demo tracking mode: rider movement is simulated, not real GPS.</div></div>`;
+function place(){const P=$("#rt");if(!P||!to)return;const pt=P.getPointAtLength(P.getTotalLength()*(to.p||0));$("#rd").setAttribute("transform",`translate(${pt.x},${pt.y})`)}
+const _rt=renderTrack;renderTrack=function(){_rt();place()};
+setInterval(()=>{if(!to||$("#tv").hidden||!$("#rd"))return;const s=to.st,g=s<5?0:s===5?.4:s===6?.9:1;to.p=s<5?0:Math.min(g,(to.p||0)+.04);place();const k=$("#km");if(k)k.textContent=(3.2*(1-to.p)).toFixed(1)},1000);
+/* Product management for shopkeepers */
+const cl=s=>String(s??"").replace(/[<>&"]/g,"");
+document.head.insertAdjacentHTML("beforeend",'<style>.fl{display:block;font-weight:600;font-size:14px;margin-top:10px}.fl input,.fl select{width:100%;height:46px;margin-top:4px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:0 12px;font:inherit}#pm{z-index:85;align-items:end}@media(min-width:640px){#pm{align-items:center}}</style>');
+document.body.insertAdjacentHTML("beforeend",'<div class="modal" id="pm" hidden></div>');
+const STORE={},TABS=["Staples","Dairy","Snacks","Care","Fruits","Vegetables","Bakery","Stationery"],SH=()=>SHOPS.find(s=>s[0]===sellerShop),disc=p=>p.mrp?Math.round((1-p.pr/p.mrp)*100):0;
+let fi=null,armed=null;
+function allItems(s){return STORE[s[0]]||(STORE[s[0]]=baseItems(s))}
+function items(s){return allItems(s).filter(p=>p.on!==false)}
+const prodSection=sh=>`<div class="sh" style="margin-top:22px"><h2 style="font-size:20px">Products</h2><button class="btn b3" data-pa="1">+ Add Product</button></div><div class="cmp">${allItems(sh).map((p,i)=>`<div class="crow"><div class="pimg" style="width:48px;height:48px;font-size:26px;margin:0;flex:none">${p.e}</div><div style="flex:1;min-width:0"><div style="font-weight:600">${p.n}${p.on===false?' <span class="best" style="background:#eee;color:#555">Hidden</span>':''}</div><div class="sub">${p.sz} · ${rs(p.pr)} <s>${rs(p.mrp)}</s> · ${disc(p)}% OFF · ${p.st===0?'Out of stock':p.st+' in stock'}</div><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button class="chip" data-pe="${i}">Edit</button><button class="chip" data-pt="${i}">${p.on===false?'Enable':'Disable'}</button><button class="chip" data-pd="${i}" style="color:var(--chili)">Delete</button></div></div></div>`).join("")||'<div class="sub">No products yet. Tap Add Product.</div>'}</div>`;
+const fld=(id,l,v,t)=>`<label class="fl">${l}<input id="${id}" type="${t||"text"}" ${t==="number"?'inputmode="decimal" min="0"':""} value="${(v??"").toString().replace(/"/g,"&quot;")}"></label>`;
+function fdisc(){const m=+$("#f-mrp").value,r=+$("#f-pr").value;$("#f-d").textContent=m>0&&r>0&&r<=m?Math.round((1-r/m)*100)+"% OFF":""}
+function openForm(i){fi=i;const p=i===null?{}:allItems(SH())[i];
+$("#pm").innerHTML=`<div class="mbox" style="max-height:92vh;overflow:auto"><h3 style="font-size:20px">${i===null?"Add Product":"Edit Product"}</h3>${fld("f-n","Product name",p.n)}${fld("f-b","Brand",p.b)}<label class="fl">Category<select id="f-t">${TABS.map(t=>`<option ${t===(p.t||"Staples")?"selected":""}>${t}</option>`).join("")}</select></label>${fld("f-sz","Quantity (like 5 kg)",p.sz)}${fld("f-mrp","MRP ₹",p.mrp,"number")}${fld("f-pr","Selling price ₹",p.pr,"number")}<div id="f-d" class="free" style="font-weight:600;margin-top:6px"></div>${fld("f-st","Stock",p.st,"number")}${fld("f-e","Icon (one emoji)",p.e||"📦")}<div class="acts" style="margin-top:14px"><button class="btn" id="f-x">Cancel</button><button class="btn b1" id="f-s">Save product</button></div></div>`;
+$("#pm").hidden=false;fdisc()}
+$("#pm").oninput=fdisc;
+const chk=async q=>{const{error}=await q;if(error)throw error};
+const pid=async(sid,n)=>(await sb.from("products").select("id").eq("shop_id",sid).eq("name",n).limit(1)).data?.[0]?.id;
+async function sbProd(sh,old,p,mode){if(!LIVE||!me||!shopIds[sh[0]])return;const sid=shopIds[sh[0]];
+try{if(mode==="del"){await chk(sb.from("products").delete().eq("shop_id",sid).eq("name",p.n));return}
+if(mode==="tog"){await chk(sb.from("products").update({is_active:p.on!==false}).eq("shop_id",sid).eq("name",p.n));return}
+const row={name:p.n,brand:p.b||null,quantity_label:p.sz,mrp:p.mrp,price:p.pr,is_active:p.on!==false,category_id:catIds[TABCAT[p.t]]||null};let id;
+if(old){await chk(sb.from("products").update(row).eq("shop_id",sid).eq("name",old.n));id=await pid(sid,p.n)}
+else{const{data,error}=await sb.from("products").insert({...row,shop_id:sid}).select("id").single();if(error)throw error;id=data.id}
+if(id)await chk(sb.from("inventory").upsert({product_id:id,stock:p.st,updated_at:new Date().toISOString()}))}catch(e){toast("Saved here, not in the database: "+(e.message||e))}}
+function saveForm(){const sh=SH(),L=allItems(sh),old=fi===null?null:L[fi],n=cl($("#f-n").value).trim(),mrp=+$("#f-mrp").value,pr=+$("#f-pr").value,st=Math.floor(+$("#f-st").value);
+if(!n)return toast("Enter the product name");if(!(mrp>0))return toast("Enter the MRP");if(!(pr>0)||pr>mrp)return toast("Selling price must be above 0 and not above MRP");if(!(st>=0))return toast("Enter the stock (0 or more)");
+const p={...(old||{id:"u"+Date.now(),on:true}),n,b:cl($("#f-b").value).trim(),t:$("#f-t").value,sz:cl($("#f-sz").value).trim(),mrp,pr,st,e:[...cl($("#f-e").value.trim())][0]||"📦"};
+if(old)L[fi]=p;else L.unshift(p);$("#pm").hidden=true;toast(old?"Product updated":"Product added");sbProd(sh,old,p);renderSeller()}
+document.addEventListener("click",e=>{const t=e.target.closest("button");if(!t)return;const d=t.dataset;
+if(d.pa!==undefined)openForm(null);else if(d.pe!==undefined)openForm(+d.pe);
+else if(d.pt!==undefined){const p=allItems(SH())[+d.pt];p.on=p.on===false;sbProd(SH(),null,p,"tog");renderSeller()}
+else if(d.pd!==undefined){const k=d.pd;if(armed!==k){armed=k;t.textContent="Tap again to delete";setTimeout(()=>{if(armed===k){armed=null;if(!$("#sp").hidden)renderSeller()}},3000)}else{armed=null;const[p]=allItems(SH()).splice(+k,1);sbProd(SH(),null,p,"del");toast("Product deleted");renderSeller()}}
+else if(t.id==="f-x")$("#pm").hidden=true;else if(t.id==="f-s")saveForm()});
+/* Account, coupons, reviews, admin extras */
+const COUPONS={LOCAL1:{t:"Free delivery on your first order",fd:1,first:1},SAVE10:{t:"10% off (up to ₹100) above ₹299",min:299,d:v=>Math.min(100,Math.round(v*.1))},FLAT50:{t:"₹50 off above ₹499",min:499,d:v=>50}};
+let coupon=null,av="home",at="Customers",RAD=15;const REV=[];
+const FAV=new Set((()=>{try{return JSON.parse(localStorage.getItem("lk_fav")||"[]")}catch(e){return[]}})());
+const favSet=(n,on)=>{on?FAV.add(n):FAV.delete(n);try{localStorage.setItem("lk_fav",JSON.stringify([...FAV]))}catch(e){}};
+document.head.insertAdjacentHTML("beforeend",'<style>#ac{position:fixed;inset:0;z-index:64;background:var(--bg);overflow-y:auto;padding:calc(12px + env(safe-area-inset-top,0px)) 0 90px}#ac[hidden]{display:none}.arow{display:flex;justify-content:space-between;align-items:center;padding:15px 4px;border-top:1px solid var(--line);font-weight:600;width:100%;text-align:left;min-height:52px}.star{font-size:30px;min-width:44px;min-height:44px;color:var(--line)}.star.on{color:var(--tur)}</style>');
+document.body.insertAdjacentHTML("beforeend",'<div id="ac" hidden></div>');
+const CN="Aarav Priya Rohit Neha Vikram Anita Sanjay Pooja Amit Kavita Deepak Sunita Manoj Rekha Ajay Meena Rahul Sapna Nitin Alka".split(" "),SN=["Sharma","Gupta","Singh","Mahto","Kumar","Oraon","Munda","Prasad"],AR=["Lalpur","Harmu","Kanke","Morabadi","Doranda","Argora","Bariatu","Hinoo"];
+const CUST=CN.map((n,i)=>({n:n+" "+SN[i%8],a:AR[(i*3)%8],o:i%4})),RID=[["Ramesh Yadav","Bike"],["Suresh Munda","Scooter"],["Imran Ansari","Bike"],["Dinesh Oraon","Bike"],["Rakesh Kumar","Scooter"]];
+function openAcc(v){av=v||"home";$("#ac").hidden=false;renderAcc()}
+function renderAcc(){const v=av,email=me?cl(me.email):"",sub=t=>`<div class="sub" style="font-weight:400">${t}</div>`;
+const H=t=>`<div class="wrap"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><button class="rb" data-ax="${v==="home"?"x":"home"}" style="position:static;background:var(--card);color:var(--ink)" aria-label="Back">←</button><h2 style="font-size:22px">${t}</h2></div>`;
+const L=(a,b)=>`<div class="row"><span>${a}</span><span>${b||""}</span></div>`,E=t=>`<div class="empty">${t}</div>`;let h;
+if(v==="auth")h=authView(H);else if(v==="regshop")h=regShopView(H);else if(v==="regrider")h=regRiderView(H);else if(v==="wallet")h=walletView(H);else if(v==="profile")h=profileView(H);
+else if(v==="home"){const A=(k,i,t)=>`<button class="arow" data-av="${k}"><span>${i} ${t}</span><span>›</span></button>`;
+h=H("Account")+`<div class="cmp" style="display:flex;gap:14px;align-items:center"><div class="slogo" style="margin:0;background:var(--pea);width:56px;height:56px;font-size:22px">${(pname||"G")[0].toUpperCase()}</div><div><b>${pname||"Guest"}</b>${sub(me?(pphone?"+91 "+pphone+" · ":"")+ROLEN[role]:"Sign in to save orders, addresses and reviews.")}</div></div>`+(me?"":`<button class="btn b1" data-svc="auth" style="width:100%;margin-top:12px">Sign in or create account</button>`)+`<div class="cmp" style="margin-top:14px;padding:4px 16px">${A("profile","👤","Profile")}${A("orders","🧾","My Orders")}${A("addresses","📍","Saved Addresses")}${A("favs","❤️","Favorite Shops")}${A("wallet","👛","Wallet")}${A("coupons","🏷️","Coupons")}${A("payments","💳","Payments")}${A("notifs","🔔","Notifications")}</div><div class="cmp" style="margin-top:14px;padding:4px 16px"><div class="sub" style="padding:10px 0 2px;font-weight:600">Our services</div>${svcList()}</div><div class="cmp" style="margin-top:14px;padding:4px 16px">${A("help","🛟","Help & Support")}${A("privacy","🔒","Privacy")}${me?`<button class="arow" data-av="logout" style="color:var(--chili)"><span>↩ Logout</span></button>`:""}</div>`}
+else if(v==="orders")h=H("My Orders")+(orders.length?orders.map((o,i)=>`<button class="arow cmp" style="margin-bottom:10px" data-ot="${i}"><span>#${o.id} · ${o.shop}${sub((o.st<0?"Rejected":STEPS[o.st])+" · "+rs(o.total))}</span><span>›</span></button>`).join(""):E("No orders yet. Your orders will show up here."));
+else if(v==="addresses")h=H("Saved Addresses")+`<div class="cmp">${addrs.map(a=>L(`<b>${a[0]}</b>${sub(a[1])}`)).join("")}<div class="search" style="margin-top:10px"><input id="an" placeholder="Add new address" aria-label="New address"><button class="btn b3" id="aa" style="min-height:34px;padding:0 12px">Add</button></div></div>`;
+else if(v==="favs")h=H("Favorite Shops")+(FAV.size?[...FAV].map(n=>`<button class="arow cmp" style="margin-bottom:10px" data-fs="${cl(n)}"><span>${cl(n)}</span><span>View shop ›</span></button>`).join(""):E("No favorite shops yet. Tap the heart on a shop."));
+else if(v==="coupons")h=H("Coupons")+`<div class="cmp">${Object.entries(COUPONS).map(([k,c])=>L(`<b>${k}</b>${sub(c.t)}`,"Apply in cart")).join("")}</div>`;
+else if(v==="payments")h=H("Payments")+`<div class="cmp">${L("<b>Cash on Delivery</b>","Available")}${L("<b>UPI / Online payment</b>","Coming soon")}</div>`;
+else if(v==="notifs")h=H("Notifications")+(orders.length?`<div class="cmp">${orders.map(o=>L(`Order #${o.id}${sub(o.st<0?"The shop could not accept this order":STEPS[o.st])}`,o.shop)).join("")}</div>`:E("No notifications yet."));
+else if(v==="help")h=H("Help & Support")+`<div class="cmp">${L("<b>How do I track my order?</b>")}${sub("Open Orders and tap your order.")}${L("<b>Can I pay online?</b>")}${sub("Not yet. Cash on Delivery is available today.")}${L("<b>Wrong item or late delivery?</b>")}${sub("Support chat and a phone number will be added before launch.")}</div>`;
+else h=H("Privacy")+`<div class="cmp"><p>When you sign in, LocalKart stores your name, email, addresses and orders so you can reorder and track deliveries. Shops see only what they need to prepare your order. Riders see the pickup shop and your delivery address while delivering. Your data is protected by database access rules, and we never sell it.</p></div>`;
+$("#ac").innerHTML=h+"</div>"}
+$("#ac").onclick=e=>{const t=e.target.closest("button");if(!t)return;const d=t.dataset;
+if(d.ax==="x")$("#ac").hidden=true;else if(d.ax){av=d.ax;renderAcc()}
+else if(d.av==="logout"){if(me)sb.auth.signOut().then(()=>location.reload());else location.href="login.html"}
+else if(d.av){av=d.av;renderAcc()}
+else if(d.ot!==undefined){$("#ac").hidden=true;openTrack(orders[+d.ot])}
+else if(d.fs){$("#ac").hidden=true;openShop(d.fs)}
+else if(t.id==="aa"){const x=cl($("#an").value).trim();if(!x)return toast("Type the address first");addrs.push(["Saved address",x]);renderAcc();toast("Address saved")}};
+const stars=(k,val)=>[1,2,3,4,5].map(i=>`<button class="star ${i<=val?"on":""}" data-rv="${k}" data-v="${i}" aria-label="${i} star">★</button>`).join("");
+const reviewCard=o=>o.rv?`<div class="cmp" style="margin-top:14px"><b>Thanks for your review ⭐</b><div class="sub">Shop ${o.rs.shop}/5 · Delivery ${o.rs.del}/5</div></div>`:`<div class="cmp" style="margin-top:14px"><strong>How was your experience?</strong><div class="sub">Shop</div>${stars("shop",(o.rs||{}).shop||0)}<div class="sub">Delivery</div>${stars("del",(o.rs||{}).del||0)}<label class="fl">Comment (optional)<input id="rv-c" maxlength="200" value="${cl(o.rcm||"")}"></label><button class="btn b1" id="rv-s" style="width:100%;margin-top:12px">Submit review</button></div>`;
+async function saveReview(o){if(!LIVE||!me||!o.dbId||!shopIds[o.shop])return;const{error}=await sb.from("reviews").insert({order_id:o.dbId,customer_id:me.id,shop_id:shopIds[o.shop],shop_rating:o.rs.shop,delivery_rating:o.rs.del||null,comment:cl(o.rcm||"")||null});if(error)toast("Review shown here, not saved: "+error.message)}
+function admMore(){const T=["Customers","Riders","Shops","Coupons","Payments","Reviews","Locations","Settings"],R=(a,b)=>`<div class="row"><span>${a}</span><span>${b}</span></div>`;let c;
+if(at==="Customers")c=CUST.map(x=>R(x.n+`<small>${x.a}, Ranchi</small>`,x.o+" orders")).join("");
+else if(at==="Riders")c=RID.map((r,i)=>R(r[0]+`<small>${r[1]} · Approved</small>`,i===0&&ron?"● Online":"○ Offline")).join("");
+else if(at==="Shops")c=SHOPS.map(x=>R(x[0]+`<small>${x[1]} · ⭐ ${x[3]}</small>`,x[6]?"Open":"Closed")).join("");
+else if(at==="Coupons")c=Object.entries(COUPONS).map(([k,v])=>R(k+`<small>${v.t}</small>`,"Active")).join("");
+else if(at==="Payments")c=orders.map(o=>R("#"+o.id+" · Cash on Delivery"+`<small>${o.shop}</small>`,rs(o.total)+(o.st===7?" · Collected":" · Pending"))).join("")||'<div class="sub">No payments yet.</div>';
+else if(at==="Reviews")c=REV.map(r=>R("#"+r.o+" · "+r.shop+`<small>${r.c||"No comment"}</small>`,"⭐ "+r.s+" · 🛵 "+r.d)).join("")||'<div class="sub">No reviews yet. They appear after a delivered order is rated.</div>';
+else if(at==="Locations")c=R("Ranchi → Jharkhand → India","Launch city")+`<label class="fl">Service radius (km)<input id="rad" type="number" inputmode="decimal" min="1" max="100" value="${RAD}"></label><button class="btn b3" id="rad-s" style="margin-top:10px">Save radius</button><div class="sub" style="margin-top:8px">Customers only see shops inside this distance.</div>`;
+else c=R("Commission","8%")+R("Delivery fee","₹30 (free above ₹499)")+R("Rider pay per delivery","₹45")+'<div class="sub" style="margin-top:8px">These values are fixed in this version. Editing them here comes later.</div>';
+return `<div class="cmp" style="margin-top:14px"><strong>Manage</strong><div class="chips" style="margin-top:10px">${T.map(x=>`<button class="chip" data-at="${x}" aria-pressed="${x===at}">${x}</button>`).join("")}</div>${c}${["Customers","Riders"].includes(at)?'<div class="sub" style="margin-top:8px">Sample data for the demo.</div>':""}</div>`}
+document.addEventListener("click",e=>{const t=e.target.closest("button");if(!t)return;const d=t.dataset;
+if(t.id==="ap-c"){const k=$("#cc").value.trim().toUpperCase();if(k&&!COUPONS[k])return toast("That coupon code is not valid");coupon=k||null;renderCart();toast(k?"Coupon applied":"Coupon removed")}
+else if(d.rv&&to){to.rs=to.rs||{shop:0,del:0};to.rs[d.rv]=+d.v;renderTrack()}
+else if(t.id==="rv-s"&&to){const r=to.rs||{};if(!r.shop)return toast("Tap the stars to rate the shop");to.rv=true;to.rs={shop:r.shop,del:r.del||0};REV.unshift({o:to.id,shop:to.shop,s:to.rs.shop,d:to.rs.del,c:cl(to.rcm||"")});renderTrack();toast("Thanks for your review");saveReview(to)}
+else if(d.at){at=d.at;renderAdmin()}
+else if(t.id==="rad-s"){RAD=Math.min(100,Math.max(1,+$("#rad").value||15));if(LIVE&&me)sb.from("service_areas").update({radius_km:RAD}).eq("name","Ranchi Core");toast("Service radius set to "+RAD+" km");render();renderAdmin()}});
+document.addEventListener("input",e=>{if(e.target.id==="rv-c"&&to)to.rcm=e.target.value});
+$(".bnav").children[4].onclick=()=>openAcc();$(".dnav").children[2].onclick=()=>openAcc();$(".dnav").children[0].onclick=()=>openAcc("coupons");
+$(".bnav").children[0].onclick=()=>{go("");scrollTo({top:0,behavior:"smooth"})};$(".bnav").children[1].onclick=()=>{go("");$("#cats").scrollIntoView({behavior:"smooth"})};
+/* Accounts by role, registration, GPS */
+let role="customer",pname="",pphone="",myApp=null,myRider=null,myShops=[],demoPanels=false,authMode="in",regPos=null,myPos=null,RQ=[],gw=null,myGps=null,lastPush=0,gpsWarned=false,locCh=null;
+const catIds={},ROLEN={customer:"Customer",shopkeeper:"Shopkeeper",rider:"Delivery partner",admin:"Admin"};
+const canPanel=r=>demoPanels||!!(LIVE&&me&&(role==="admin"||(role==="shopkeeper"&&r==="shop")||(role==="rider"&&r==="rider")));
+const EMC={"Groceries":"🛒","Fruits & Vegetables":"🥭","Dairy":"🥛","Bakery":"🥐","Snacks":"🍿","Beverages":"🧃","Personal Care":"🧴","Household":"🧽","Meat & Chicken":"🍗","Stationery":"✏️","Electronics":"🔌","Local Products":"🏺"};
+const TABC={"Groceries":"Staples","Fruits & Vegetables":"Fruits","Dairy":"Dairy","Bakery":"Bakery","Snacks":"Snacks","Personal Care":"Care","Stationery":"Stationery"};
+const TABCAT={Staples:"Groceries",Dairy:"Dairy",Snacks:"Snacks",Care:"Personal Care",Fruits:"Fruits & Vegetables",Vegetables:"Fruits & Vegetables",Bakery:"Bakery",Stationery:"Stationery"};
+const PAL=["#0B5D57,#0E7A72","#2A5CAA,#4C84D6","#C77700,#F59E0B","#6B3FA0,#8F63C7","#B3261E,#E63B2E","#3B82A0,#5DB1CF"];
+const stTxt=x=>({pending:"Pending review",under_review:"Under review",approved:"Approved",rejected:"Rejected",suspended:"Suspended"}[x]||x);
+const getPos=()=>new Promise((ok,no)=>{if(!navigator.geolocation)return no(new Error("This browser has no location support."));navigator.geolocation.getCurrentPosition(p=>ok({lat:p.coords.latitude,lng:p.coords.longitude}),e=>no(new Error(e.code===1?"Location is blocked. Allow location for this site in your browser settings.":"Could not get your location. Try again with GPS on.")),{enableHighAccuracy:true,timeout:15000,maximumAge:0})});
+const hav=(a,b)=>{const r=x=>x*Math.PI/180,dl=r(b.lat-a.lat),dg=r(b.lng-a.lng),h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dg/2)**2;return 12742*Math.asin(Math.sqrt(h))};
+const dlOf=o=>o.dl||(o.addr&&o.addr[2])||null;
+const liveKm=o=>{const d=dlOf(o);return o.gps&&d?hav(o.gps,{lat:d[0],lng:d[1]}).toFixed(1):(3.2*(1-(o.p||0))).toFixed(1)};
+const liveEta=o=>{const d=dlOf(o);return o.gps&&d?Math.max(1,Math.round(hav(o.gps,{lat:d[0],lng:d[1]})/20*60)):ETA[o.st]};
+const navUrl=o=>{const sh=SHOPS.find(x=>x[0]===o.shop),d=dlOf(o);return"https://www.google.com/maps/dir/?api=1&destination="+(o.st<5?(sh&&sh.lat!=null?sh.lat+","+sh.lng:encodeURIComponent(o.shop+" Ranchi")):(d?d[0]+","+d[1]:encodeURIComponent(o.addr[1]+" Ranchi")))};
+function proj(pts){const k=Math.cos(pts[0].lat*Math.PI/180),xs=pts.map(p=>p.lng*k),ys=pts.map(p=>-p.lat),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),sc=Math.min(260/Math.max(x1-x0,.004),120/Math.max(y1-y0,.004));return p=>[160+(p.lng*k-(x0+x1)/2)*sc,90+(-p.lat-(y0+y1)/2)*sc]}
+function liveMapCard(o){const d=dlOf(o),sh=SHOPS.find(x=>x[0]===o.shop),pts=[{k:"r",lat:o.gps.lat,lng:o.gps.lng}];if(d)pts.push({k:"c",lat:d[0],lng:d[1]});if(sh&&sh.lat!=null)pts.push({k:"s",lat:sh.lat,lng:sh.lng});const P=proj(pts),mk={c:"📍",s:"🏪"};
+return `<div class="cmp" style="margin-top:14px"><svg viewBox="0 0 320 180" style="width:100%;border-radius:14px;background:var(--bg)" role="img" aria-label="Live map with the rider"><path d="M0 60H320M0 120H320M80 0V180M200 0V180" stroke="var(--line)" stroke-width="10" fill="none"/>${pts.map(p=>{const[x,y]=P(p);return p.k==="r"?`<g transform="translate(${x},${y})"><circle r="16" fill="#FFB703"/><text y="7" font-size="20" text-anchor="middle">🛵</text></g>`:`<text x="${x}" y="${y+8}" font-size="24" text-anchor="middle">${mk[p.k]}</text>`}).join("")}</svg><div class="sub" style="margin-top:8px">📡 Live GPS from the rider's phone.${d?"":" Choose GPS location as your delivery address to see the distance."}</div></div>`}
+function trackLoc(o){if(locCh){sb.removeChannel(locCh);locCh=null}if(!LIVE||!o.dbId)return;
+sb.from("rider_locations").select("lat,lng").eq("order_id",o.dbId).order("recorded_at",{ascending:false}).limit(1).then(r=>{const x=r.data&&r.data[0];if(x){o.gps={lat:+x.lat,lng:+x.lng};if(to===o&&!$("#tv").hidden)renderTrack()}});
+locCh=sb.channel("loc-"+o.dbId).on("postgres_changes",{event:"INSERT",schema:"public",table:"rider_locations",filter:"order_id=eq."+o.dbId},q=>{o.gps={lat:+q.new.lat,lng:+q.new.lng};if(to===o&&!$("#tv").hidden)renderTrack()}).subscribe()}
+function gpsOn(){if(gw!==null||!navigator.geolocation)return;gw=navigator.geolocation.watchPosition(q=>{myGps={lat:q.coords.latitude,lng:q.coords.longitude};const o=orders.find(x=>x.rider&&x.st>=4&&x.st<7);if(o)pushLoc(o)},()=>{toast("Location is blocked. Allow location to share live tracking.");gpsOff()},{enableHighAccuracy:true,maximumAge:3000,timeout:20000})}
+function gpsOff(){if(gw!==null){navigator.geolocation.clearWatch(gw);gw=null}}
+async function pushLoc(o){const n=Date.now();if(n-lastPush<5000||!LIVE||!me||!o.dbId)return;lastPush=n;const{error}=await sb.from("rider_locations").insert({rider_id:me.id,order_id:o.dbId,lat:myGps.lat,lng:myGps.lng});if(error&&!gpsWarned){gpsWarned=true;toast("Location not shared: "+error.message)}}
+setInterval(()=>{const a=orders.find(o=>o.rider&&o.st>=4&&o.st<7);if(LIVE&&me&&ron&&a&&canPanel("rider"))gpsOn();else gpsOff();const b=$("#gpsb");if(b)b.textContent=gw!==null?(myGps?"📡 Sharing your live location. Keep this page open.":"📡 Waiting for GPS signal…"):"📡 Go online and allow GPS to share your live location"},3000);
+async function acceptDelivery(o){if(LIVE&&me&&o.dbId){const{error}=await sb.from("delivery_assignments").insert({order_id:o.dbId,rider_id:me.id});if(error&&role!=="admin")return toast("Could not accept: "+error.message)}o.rider=true;setSt(o,4);toast("Delivery accepted")}
+async function loadShops(){const[sr,ct]=await Promise.all([sb.from("shops").select("id,name,address,phone,status,is_open,rating,lat,lng,categories(name)"),sb.from("categories").select("id,name")]);(ct.data||[]).forEach(c=>catIds[c.name]=c.id);
+(sr.data||[]).forEach(r=>{const n=cl(r.name);shopIds[n]=r.id;let x=SHOPS.find(y=>y[0]===n);
+if(!x&&r.status==="approved"){const h=[...n].reduce((a,c)=>a+c.charCodeAt(0),0);x=[n,cl((r.address||"Ranchi").split(",")[0]),(r.categories?.name||"Groceries").replace("Fruits & Vegetables","Fruits & Veg"),+r.rating||4,3.0,"25–40",r.is_open?1:0,"New",PAL[h%PAL.length]];x.nw=true;SHOPS.push(x)}
+if(x){x.lat=r.lat;x.lng=r.lng;x.phone=cl(r.phone||"")}})}
+async function loadProducts(){const{data}=await sb.from("products").select("id,name,brand,quantity_label,mrp,price,is_active,shops(name),categories(name),inventory(stock)");if(!data)return;const g={};
+data.forEach(r=>{const sn=cl(r.shops?.name);if(!sn)return;const lp=P.find(p=>p[1]===r.name)||[],inv=Array.isArray(r.inventory)?r.inventory[0]:r.inventory;(g[sn]=g[sn]||[]).push({id:r.id,n:cl(r.name),b:cl(r.brand),sz:cl(r.quantity_label),mrp:+r.mrp,pr:+r.price,e:lp[5]||EMC[r.categories?.name]||"📦",t:lp[6]||TABC[r.categories?.name]||"Staples",st:inv?inv.stock:0,on:r.is_active})});Object.keys(g).forEach(k=>STORE[k]=g[k])}
+async function afterLogin(){const{data:{session}}=await sb.auth.getSession();me=session?.user||null;
+if(me){const[p,a,r,sh]=await Promise.all([sb.from("profiles").select("role,full_name,phone").eq("id",me.id).single(),sb.from("shop_applications").select("shop_name,status").eq("applicant_id",me.id).order("created_at",{ascending:false}).limit(1),sb.from("riders").select("status,vehicle").eq("id",me.id).maybeSingle(),sb.from("shops").select("name").eq("owner_id",me.id)]);
+role=p.data?.role||"customer";pname=cl(p.data?.full_name||"");pphone=cl(p.data?.phone||"");myApp=a.data&&a.data[0]||null;myRider=r.data||null;myShops=(sh.data||[]).map(x=>cl(x.name));if(role==="shopkeeper"&&myShops[0])sellerShop=myShops[0]}
+else{role="customer";pname=pphone="";myApp=myRider=null;myShops=[]}
+await loadShops();await loadProducts();if(me)await loadOrders();if(role==="admin")await loadApps();render();upd()}
+async function doAuth(){const msg=t=>{$("#am").textContent=t},ph=($("#au-p").value||"").replace(/\D/g,"").replace(/^91(?=\d{10}$)/,""),pw=$("#au-w").value,nm=cl($("#au-n")?.value||"").trim();
+if(!/^[6-9]\d{9}$/.test(ph))return msg("Enter your 10-digit mobile number.");if(pw.length<6)return msg("Password must be at least 6 characters.");if(authMode==="up"&&!nm)return msg("Enter your name.");
+if(!LIVE)return msg("Login needs Supabase. Add your keys in config.js.");
+const email=ph+"@phone.localkart.app";$("#au-b").disabled=true;
+const r=authMode==="up"?await sb.auth.signUp({email,password:pw,options:{data:{full_name:nm,phone:ph}}}):await sb.auth.signInWithPassword({email,password:pw});
+$("#au-b").disabled=false;if(r.error)return msg(/Invalid login/i.test(r.error.message)?"Wrong number or password.":/registered/i.test(r.error.message)?"This number already has an account. Tap Sign in.":r.error.message);
+if(!r.data.session)return msg("Account created, but Supabase wants email confirmation. Turn off Confirm email in Supabase, then sign in.");
+await afterLogin();av="home";renderAcc();toast("Welcome!")}
+const authView=H=>H(authMode==="up"?"Create account":"Sign in")+`<div class="cmp"><div class="chips"><button class="chip" data-am="in" aria-pressed="${authMode==="in"}">Sign in</button><button class="chip" data-am="up" aria-pressed="${authMode==="up"}">Create account</button></div>${authMode==="up"?fld("au-n","Your name",""):""}<label class="fl">Mobile number<input id="au-p" type="tel" inputmode="numeric" maxlength="14" placeholder="10-digit number" autocomplete="tel"></label><label class="fl">Password<input id="au-w" type="password" placeholder="At least 6 characters" autocomplete="${authMode==="up"?"new-password":"current-password"}"></label><div id="am" class="sub" style="color:var(--chili);margin-top:8px" role="alert"></div><button class="btn b1" id="au-b" style="width:100%;margin-top:12px">${authMode==="up"?"Create account":"Sign in"}</button><div class="sub" style="margin-top:10px">Your mobile number is your login ID. It is not verified by SMS yet, and the password cannot be reset by SMS. You stay signed in on this phone.</div></div>`;
+const profileView=H=>H("Profile")+`<div class="cmp">${me?`${fld("pf-n","Name",pname)}<div class="row"><span>Mobile<small>${pphone?"+91 "+pphone:"Not set"}</small></span></div><div class="row"><span>Account type<small>${ROLEN[role]}</small></span></div><button class="btn b1" data-psave style="width:100%;margin-top:12px">Save name</button>`:`<div class="sub">Sign in to see your profile.</div>`}</div>`;
+const walletView=H=>H("Wallet")+`<div class="cmp"><div class="sub">Wallet balance</div><div class="tot">₹0.00</div><div class="sub" style="margin-top:8px">Adding money and refunds arrive with online payments (UPI). For now every order is Cash on Delivery.</div></div>`;
+const regShopView=H=>H("Register your shop")+(!me?`<div class="cmp"><div class="sub">Sign in first to register your shop.</div><button class="btn b1" data-svc="auth" style="margin-top:10px">Sign in</button></div>`:myApp?`<div class="cmp"><strong>${cl(myApp.shop_name)}</strong><div class="sub">Application status: ${stTxt(myApp.status)}</div><div class="sub" style="margin-top:6px">${myApp.status==="approved"?"Your shop is live. Open the Shop panel from Account.":"We review applications in Ranchi first. The Shop panel appears in Account once you are approved."}</div></div>`:`<div class="cmp"><div class="sub">Bring your shop online. You keep your products, prices and stock.</div>${fld("rs-n","Shop name","")}${fld("rs-o","Owner name",pname)}<label class="fl">Phone<input id="rs-p" type="tel" inputmode="numeric" value="${pphone}"></label>${fld("rs-a","Shop address (Ranchi)","")}<label class="fl">Category<select id="rs-c">${Object.keys(EMC).map(c=>`<option>${c}</option>`).join("")}</select></label>${fld("rs-b","Business information (optional)","")}<button class="btn" id="gps-s" style="width:100%;margin-top:12px">📡 Save my shop location (stand inside your shop)</button><div class="sub" id="gps-r" style="margin-top:6px">${regPos?"Location saved ✓":"Not saved yet"}</div><button class="btn b1" id="rs-sub" style="width:100%;margin-top:12px">Submit application</button><div class="sub" style="margin-top:8px">Shop photos can be added after approval (coming soon).</div></div>`);
+const regRiderView=H=>H("Rider registration")+(!me?`<div class="cmp"><div class="sub">Sign in first to register as a rider.</div><button class="btn b1" data-svc="auth" style="margin-top:10px">Sign in</button></div>`:myRider?`<div class="cmp"><strong>Delivery partner</strong><div class="sub">Application status: ${stTxt(myRider.status)}</div><div class="sub" style="margin-top:6px">${myRider.status==="approved"?"You are approved. Open the Rider panel from Account.":"We will review your registration. The Rider panel appears in Account once you are approved."}</div></div>`:`<div class="cmp"><div class="sub">Deliver orders from local shops in Ranchi and earn per delivery.</div><label class="fl">Vehicle<select id="rr-v"><option>Bike</option><option>Scooter</option><option>Cycle</option></select></label><label class="opt"><input type="checkbox" id="rr-l"><span>I have a valid driving licence (if I use a motor vehicle)</span></label><button class="btn b1" id="rr-sub" style="width:100%;margin-top:12px">Submit registration</button></div>`);
+function svcList(){const S=(k,i,t,x)=>`<button class="arow" data-svc="${k}"><span>${i} ${t}</span><span>${x||"›"}</span></button>`;let o="";
+if(canPanel("shop"))o+=S("shoppanel","🏪","Shop panel");if(canPanel("rider"))o+=S("riderpanel","🛵","Rider panel");if(canPanel("admin"))o+=S("adminpanel","🛡️","Admin panel");
+if(role==="customer"||!me){o+=S("regshop","🏬","Register your shop",myApp?stTxt(myApp.status):"");o+=S("regrider","🛵","Rider registration",myRider?stTxt(myRider.status):"")}
+if(!LIVE&&!demoPanels)o+=S("demo","🧪","Preview all panels (demo only)");return o||'<div class="sub" style="padding:8px 0">No extra services for this account.</div>'}
+async function submitShop(){const g=id=>cl($("#"+id).value).trim(),n=g("rs-n"),ow=g("rs-o"),ph=g("rs-p").replace(/\D/g,""),ad=g("rs-a"),bi=g("rs-b");
+if(!n||!ow||!ad)return toast("Fill in shop name, owner name and address");if(!/^[6-9]\d{9}$/.test(ph))return toast("Enter a valid 10-digit phone number");
+const{data:city}=await sb.from("cities").select("id").eq("name","Ranchi").limit(1);
+const{error}=await sb.from("shop_applications").insert({applicant_id:me.id,shop_name:n,owner_name:ow,phone:ph,address:ad,city_id:city&&city[0]?city[0].id:null,category_id:catIds[$("#rs-c").value]||null,business_info:bi||null,lat:regPos?regPos.lat:null,lng:regPos?regPos.lng:null});
+if(error)return toast("Could not submit: "+error.message);myApp={shop_name:n,status:"pending"};regPos=null;renderAcc();toast("Application sent. We will review it.")}
+async function submitRider(){if(!$("#rr-l").checked)return toast("Please confirm the licence statement");const{error}=await sb.from("riders").insert({id:me.id,vehicle:$("#rr-v").value,status:"pending"});if(error)return toast("Could not submit: "+error.message);myRider={status:"pending"};renderAcc();toast("Registration sent. We will review it.")}
+const SDB={"Pending":"pending","Under Review":"under_review","Approved":"approved","Rejected":"rejected","Suspended":"suspended"};
+async function appDecide(a){try{const st=SDB[a.s];
+if(st==="approved"){const{data:ex}=await sb.from("shops").select("id").eq("owner_id",a.applicant).eq("name",a.n).limit(1);
+if(ex&&ex[0])await chk(sb.from("shops").update({status:"approved"}).eq("id",ex[0].id));else await chk(sb.from("shops").insert({owner_id:a.applicant,city_id:a.city,category_id:a.cat,name:a.n,address:a.a,phone:a.phone,lat:a.lat,lng:a.lng,status:"approved"}));
+await chk(sb.from("profiles").update({role:"shopkeeper"}).eq("id",a.applicant))}
+if(st==="suspended"||st==="rejected")await chk(sb.from("shops").update({status:"suspended"}).eq("owner_id",a.applicant).eq("name",a.n));
+await chk(sb.from("shop_applications").update({status:st,reviewed_by:me.id,reviewed_at:new Date().toISOString()}).eq("id",a.id));await loadShops();render()}catch(e){toast("Could not save: "+e.message)}}
+async function decideRider(id,st){try{await chk(sb.from("riders").update({status:st}).eq("id",id));if(st==="approved")await chk(sb.from("profiles").update({role:"rider"}).eq("id",id));toast("Rider "+st);await loadApps()}catch(e){toast("Could not save: "+e.message)}}
+async function loadApps(){if(role!=="admin")return;const[a,q]=await Promise.all([sb.from("shop_applications").select("id,applicant_id,shop_name,owner_name,phone,address,city_id,category_id,status,lat,lng,categories(name)").order("created_at",{ascending:false}),sb.from("riders").select("id,vehicle,status,profiles(full_name,phone)").eq("status","pending")]);
+const RV={pending:"Pending",under_review:"Under Review",approved:"Approved",rejected:"Rejected",suspended:"Suspended"};
+if(a.data){APPS.length=0;a.data.forEach(r=>APPS.push({id:r.id,applicant:r.applicant_id,n:cl(r.shop_name),o:cl(r.owner_name),a:cl(r.address),c:cl(r.categories?.name||""),s:RV[r.status]||"Pending",phone:cl(r.phone),city:r.city_id,cat:r.category_id,lat:r.lat,lng:r.lng}))}
+RQ=(q.data||[]).map(r=>({id:r.id,v:cl(r.vehicle),n:cl(r.profiles?.full_name||"Rider"),p:cl(r.profiles?.phone||"")}));if(!$("#ap").hidden)renderAdmin()}
+const riderReqHtml=()=>LIVE&&RQ.length?`<div class="cmp" style="margin-top:14px"><strong>Rider registrations</strong>${RQ.map(r=>`<div class="row" style="flex-wrap:wrap;gap:8px"><span>${r.n}<small>${r.v}${r.p?" · +91 "+r.p:""}</small></span><span style="display:flex;gap:6px"><button class="chip" data-rq="${r.id}" data-rv2="approved">Approve</button><button class="chip" data-rq="${r.id}" data-rv2="rejected">Reject</button></span></div>`).join("")}</div>`:"";
+document.addEventListener("click",async e=>{const t=e.target.closest("button");if(!t)return;const d=t.dataset;
+if(d.svc){const k=d.svc;if(k==="shoppanel"||k==="riderpanel"||k==="adminpanel"){$("#ac").hidden=true;go(k.replace("panel",""))}
+else if(k==="demo"){if(!LIVE){demoPanels=true;renderAcc();toast("Demo panels unlocked")}}
+else if((k==="regshop"||k==="regrider")&&!me){av="auth";renderAcc();toast("Sign in first")}else{av=k;renderAcc()}}
+else if(d.am){authMode=d.am;renderAcc()}
+else if(t.id==="au-b")doAuth();
+else if(t.id==="gps-s"){try{regPos=await getPos();$("#gps-r").textContent="Location saved ✓";toast("Shop location saved")}catch(x){toast(x.message)}}
+else if(t.id==="gpsa"){try{const g=await getPos();addrs[0]=["Current location","GPS location ("+g.lat.toFixed(4)+", "+g.lng.toFixed(4)+")",[g.lat,g.lng]];ai=0;renderCheckout();toast("GPS location set")}catch(x){toast(x.message)}}
+else if(t.id==="rs-sub")submitShop();else if(t.id==="rr-sub")submitRider();
+else if(d.psave!==undefined){const v=cl($("#pf-n").value).trim();if(!v)return toast("Enter your name");const{error}=await sb.from("profiles").update({full_name:v}).eq("id",me.id);if(error)return toast(error.message);pname=v;renderAcc();toast("Name saved")}
+else if(d.rq)decideRider(d.rq,d.rv2)});
+/* Supabase connection: only active when config.js has real values */
+const LKC=window.LK_CONFIG||{},LIVE=!!(window.supabase&&LKC.SUPABASE_URL&&!/^PASTE/.test(LKC.SUPABASE_URL)&&LKC.SUPABASE_ANON_KEY);
+const sb=LIVE?supabase.createClient(LKC.SUPABASE_URL,LKC.SUPABASE_ANON_KEY):null;
+const DBST=["placed","accepted","preparing","ready","rider_assigned","picked_up","out_for_delivery","delivered"];
+let me=null,shopIds={},warned=false;
+async function loadOrders(){const{data,error}=await sb.from("orders").select("id,order_no,status,total,delivery_address,delivery_lat,delivery_lng,shops(name),order_items(name,quantity),delivery_assignments(rider_id)").order("order_no",{ascending:false});
+if(error)return;const old=Object.fromEntries(orders.map(o=>[o.dbId,o]));
+orders=data.map(r=>{const k=DBST.indexOf(r.status),p=old[r.id]||{};return{...p,id:r.order_no,dbId:r.id,shop:cl(r.shops?.name),items:r.order_items.map(i=>({n:cl(i.name),q:i.quantity})),total:+r.total,addr:p.addr||["Delivery",cl(r.delivery_address)],dl:r.delivery_lat!=null?[+r.delivery_lat,+r.delivery_lng]:p.dl,rider:p.rider||(r.delivery_assignments||[]).some(d=>d.rider_id===me?.id),st:k<0?-1:k}});
+if(to)to=orders.find(o=>o.dbId===to.dbId)||to;upd()}
+async function saveOrder(o,list,v,mrp,fee){if(!LIVE)return;if(!me){toast("Demo order only. Sign in to save real orders.");return}
+if(!shopIds[o.shop]){toast("This shop is not in the database yet. Run seed-demo.sql.");return}
+const{data,error}=await sb.from("orders").insert({customer_id:me.id,shop_id:shopIds[o.shop],delivery_address:o.addr[1],delivery_lat:o.addr[2]?.[0]??null,delivery_lng:o.addr[2]?.[1]??null,subtotal:mrp,discount:mrp+fee-o.total,delivery_fee:fee,total:o.total}).select("id,order_no").single();
+if(error)return toast("Order not saved: "+error.message);
+await sb.from("order_items").insert(list.map(x=>({order_id:data.id,name:x.n,unit_price:x.pr,quantity:x.q})));
+await sb.from("order_status_history").insert({order_id:data.id,status:"placed",changed_by:me.id});
+o.dbId=data.id;o.id=data.order_no;if(!$("#tv").hidden)renderTrack()}
+async function sync2(o,s){if(!LIVE||!me||!o.dbId)return;const st=s<0?"rejected":DBST[s];
+const{error}=await sb.from("orders").update({status:st}).eq("id",o.dbId);
+if(error){if(!warned){warned=true;toast("Changed on this screen only. Your account cannot change this order.")}return}
+sb.from("order_status_history").insert({order_id:o.dbId,status:st,changed_by:me.id})}
+async function initLive(){try{await afterLogin();
+sb.channel("lk-orders").on("postgres_changes",{event:"*",schema:"public",table:"orders"},()=>{if(me)loadOrders()}).subscribe()}catch(e){console.error(e)}}
+document.addEventListener("click",e=>{if(e.target.id==="so")sb.auth.signOut().then(()=>location.reload())});
+if(LIVE)initLive();
+const R=({"#shop":"shop","#rider":"rider","#admin":"admin"})[location.hash];if(location.hash==="#account")setTimeout(()=>openAcc(),300);
+</script>
+</body>
+</html>
